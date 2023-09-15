@@ -1,25 +1,25 @@
 # @package _global_
 general:
-    name : 'sbm'
+    name : 'enz'
     gpus : 1
-    wandb: 'online'
+    wandb: 'disabled'
     resume: null            # If resume, path to ckpt file from outputs directory in main directory
     test_only: null
     check_val_every_n_epochs: 100
     sample_every_val: 4
-    samples_to_generate: 40
-    samples_to_save: 9
-    chains_to_save: 1
-    final_model_samples_to_generate: 40
-    final_model_samples_to_save: 30
-    final_model_chains_to_save: 20
+    samples_to_generate: 64
+    samples_to_save: 64
+    chains_to_save: 0
+    final_model_samples_to_generate: 64
+    final_model_samples_to_save: 64
+    final_model_chains_to_save: 0
 train:
     n_epochs: 50000
     batch_size: 8
-    save_model: True
+    save_model: False
 model:
     diffusion_steps: 1000
-    n_layers: 8
+    n_layers: 10
     lambda_train: [5, 0]
     extra_features: 'all'
 

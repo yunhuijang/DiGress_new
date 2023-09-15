@@ -1,25 +1,25 @@
 # @package _global_
 general:
-    name : 'sbm'
+    name : 'grid'
     gpus : 1
     wandb: 'online'
     resume: null            # If resume, path to ckpt file from outputs directory in main directory
     test_only: null
     check_val_every_n_epochs: 100
     sample_every_val: 4
-    samples_to_generate: 40
-    samples_to_save: 9
+    samples_to_generate: 20
+    samples_to_save: 20
     chains_to_save: 1
-    final_model_samples_to_generate: 40
-    final_model_samples_to_save: 30
+    final_model_samples_to_generate: 20
+    final_model_samples_to_save: 20
     final_model_chains_to_save: 20
 train:
-    n_epochs: 50000
-    batch_size: 8
+    n_epochs: 100
+    batch_size: 4
     save_model: True
 model:
     diffusion_steps: 1000
-    n_layers: 8
+    n_layers: 10
     lambda_train: [5, 0]
     extra_features: 'all'
 

@@ -9,10 +9,10 @@ import os
 from models.transformer_model import GraphTransformer
 from diffusion.noise_schedule import DiscreteUniformTransition, PredefinedNoiseScheduleDiscrete,\
     MarginalUniformTransition
-from src.diffusion import diffusion_utils
+from diffusion import diffusion_utils
 from metrics.train_metrics import TrainLossDiscrete
 from metrics.abstract_metrics import SumExceptBatchMetric, SumExceptBatchKL, NLL
-from src import utils
+import utils
 
 
 class DiscreteDenoisingDiffusion(pl.LightningModule):
@@ -105,6 +105,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             print("Found a batch with no edges. Skipping.")
             return
         dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
+        
         dense_data = dense_data.mask(node_mask)
         X, E = dense_data.X, dense_data.E
         noisy_data = self.apply_noise(X, E, data.y, node_mask)
@@ -116,6 +117,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
 
         self.train_metrics(masked_pred_X=pred.X, masked_pred_E=pred.E, true_X=X, true_E=E,
                            log=i % self.log_every_steps == 0)
+        
 
         return {'loss': loss}
 
@@ -174,7 +176,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             self.best_val_nll = val_nll
         print('Val loss: %.4f \t Best val loss:  %.4f\n' % (val_nll, self.best_val_nll))
 
-        self.val_counter += 1
+        self.val_counter = self.val_counter + 1
         if self.val_counter % self.cfg.general.sample_every_val == 0:
             start = time.time()
             samples_left_to_generate = self.cfg.general.samples_to_generate
@@ -193,11 +195,11 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
                                                  save_final=to_save,
                                                  keep_chain=chains_save,
                                                  number_chain_steps=self.number_chain_steps))
-                ident += to_generate
+                ident = ident + to_generate
 
-                samples_left_to_save -= to_save
-                samples_left_to_generate -= to_generate
-                chains_left_to_save -= chains_save
+                samples_left_to_save = samples_left_to_save - to_save
+                samples_left_to_generate = samples_left_to_generate - to_generate
+                chains_left_to_save = chains_left_to_save - chains_save
             print("Computing sampling metrics...")
             self.sampling_metrics(samples, self.name, self.current_epoch, val_counter=-1, test=False)
             print(f'Done. Sampling took {time.time() - start:.2f} seconds\n')
@@ -253,10 +255,10 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             chains_save = min(chains_left_to_save, bs)
             samples.extend(self.sample_batch(id, to_generate, num_nodes=None, save_final=to_save,
                                              keep_chain=chains_save, number_chain_steps=self.number_chain_steps))
-            id += to_generate
-            samples_left_to_save -= to_save
-            samples_left_to_generate -= to_generate
-            chains_left_to_save -= chains_save
+            id = id + to_generate
+            samples_left_to_save = samples_left_to_save + to_save
+            samples_left_to_generate = samples_left_to_generate - to_generate
+            chains_left_to_save = chains_left_to_save - chains_save
         print("Saving the generated graphs")
         filename = f'generated_samples1.txt'
         for i in range(2, 10):

@@ -1,5 +1,5 @@
-from src.diffusion.distributions import DistributionNodes
-import src.utils as utils
+from diffusion.distributions import DistributionNodes
+import utils as utils
 import torch
 import pytorch_lightning as pl
 from torch_geometric.loader import DataLoader
@@ -32,7 +32,7 @@ class AbstractDataModule(pl.LightningDataModule):
     def __getitem__(self, idx):
         return self.dataloaders['train'][idx]
 
-    def node_counts(self, max_nodes_possible=300):
+    def node_counts(self, max_nodes_possible=10000):
         all_counts = torch.zeros(max_nodes_possible)
         for split in ['train', 'val', 'test']:
             for i, data in enumerate(self.dataloaders[split]):
@@ -123,14 +123,14 @@ class AbstractDatasetInfos:
                            'E': example_batch['edge_attr'].size(1),
                            'y': example_batch['y'].size(1) + 1}      # + 1 due to time conditioning
         ex_extra_feat = extra_features(example_data)
-        self.input_dims['X'] += ex_extra_feat.X.size(-1)
-        self.input_dims['E'] += ex_extra_feat.E.size(-1)
-        self.input_dims['y'] += ex_extra_feat.y.size(-1)
+        self.input_dims['X'] = self.input_dims['X'] + ex_extra_feat.X.size(-1)
+        self.input_dims['E'] = self.input_dims['E'] + ex_extra_feat.E.size(-1)
+        self.input_dims['y'] = self.input_dims['y'] + ex_extra_feat.y.size(-1)
 
         ex_extra_molecular_feat = domain_features(example_data)
-        self.input_dims['X'] += ex_extra_molecular_feat.X.size(-1)
-        self.input_dims['E'] += ex_extra_molecular_feat.E.size(-1)
-        self.input_dims['y'] += ex_extra_molecular_feat.y.size(-1)
+        self.input_dims['X'] = self.input_dims['X'] + ex_extra_molecular_feat.X.size(-1)
+        self.input_dims['E'] = self.input_dims['E'] + ex_extra_molecular_feat.E.size(-1)
+        self.input_dims['y'] = self.input_dims['y'] + ex_extra_molecular_feat.y.size(-1)
 
         self.output_dims = {'X': example_batch['x'].size(1),
                             'E': example_batch['edge_attr'].size(1),

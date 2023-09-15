@@ -13,9 +13,9 @@ from tqdm import tqdm
 import numpy as np
 from torch_geometric.data import Data, InMemoryDataset
 
-from src import utils
-from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
-from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
+import utils
+from analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
+from datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
 
 def to_list(value: Any) -> Sequence:

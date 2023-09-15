@@ -13,9 +13,9 @@ from tqdm import tqdm
 import numpy as np
 from torch_geometric.data import Data, InMemoryDataset, download_url
 
-from src import utils
-from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
-from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
+import utils
+from analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
+from datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
 # If you want to filter the dataset, set this flag to True, then run main.py with cfg.dataset.filtered=False
 # Then delete data/guacamol/guacamol_pyg/processed

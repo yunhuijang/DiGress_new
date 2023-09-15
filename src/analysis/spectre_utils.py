@@ -24,7 +24,7 @@ from string import ascii_uppercase, digits
 from datetime import datetime
 from scipy.linalg import eigvalsh
 from scipy.stats import chi2
-from src.analysis.dist_helper import compute_mmd, gaussian_emd, gaussian, emd, gaussian_tv, disc
+from analysis.dist_helper import compute_mmd, gaussian_emd, gaussian, emd, gaussian_tv, disc
 from torch_geometric.utils import to_networkx
 import wandb
 
@@ -773,7 +773,7 @@ class SamplingSpectreMetrics(nn.Module):
         np.savez('generated_adjs.npz', *adjacency_matrices)
 
         print("Computing degree stats..")
-        degree = degree_stats(self.test_graphs, networkx_graphs, is_parallel=True,
+        degree = degree_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], is_parallel=True,
                               compute_emd=self.compute_emd)
         wandb.run.summary['degree'] = degree
         print("Computing spectre stats...")
@@ -783,18 +783,18 @@ class SamplingSpectreMetrics(nn.Module):
         # eigval_stats(eig_ref_list, eig_pred_list, max_eig=20, is_parallel=True, compute_emd=False)
         # spectral_filter_stats(eigvec_ref_list, eigval_ref_list, eigvec_pred_list, eigval_pred_list, is_parallel=False,
         #                       compute_emd=False)          # This is the one called wavelet
-        spectre = spectral_stats(self.test_graphs, networkx_graphs, is_parallel=True, n_eigvals=-1,
+        spectre = spectral_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], is_parallel=True, n_eigvals=-1,
                                  compute_emd=self.compute_emd)
         wandb.run.summary['spectre'] = spectre
         print("Computing clustering stats...")
-        clustering = clustering_stats(self.test_graphs, networkx_graphs, bins=100, is_parallel=True,
+        clustering = clustering_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], bins=100, is_parallel=True,
                                       compute_emd=self.compute_emd)
         wandb.run.summary['clustering'] = clustering
-        motif = motif_stats(self.test_graphs, networkx_graphs, motif_type='4cycle', ground_truth_match=None, bins=100,
+        motif = motif_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], motif_type='4cycle', ground_truth_match=None, bins=100,
                             compute_emd=self.compute_emd)
         wandb.run.summary['motif'] = motif
         print("Computing orbit stats...")
-        orbit = orbit_stats_all(self.test_graphs, networkx_graphs, compute_emd=self.compute_emd)
+        orbit = orbit_stats_all(self.test_graphs, networkx_graphs[:len(self.test_graphs)], compute_emd=self.compute_emd)
         wandb.run.summary['orbit'] = orbit
         print("Computing accuracy...")
         acc = eval_acc_sbm_graph(networkx_graphs, refinement_steps=100, strict=True)
@@ -835,10 +835,12 @@ class SpectreSamplingMetrics(nn.Module):
 
     def loader_to_nx(self, loader):
         networkx_graphs = []
+        # assert False, len(loader)
         for i, batch in enumerate(loader):
             # TODO: this does not run with current loader
             data_list = batch.to_data_list()
             for j, data in enumerate(data_list):
+                
                 networkx_graphs.append(to_networkx(data, node_attrs=None, edge_attrs=None, to_undirected=True,
                                                    remove_self_loops=True))
         return networkx_graphs
@@ -863,7 +865,7 @@ class SpectreSamplingMetrics(nn.Module):
 
         if 'degree' in self.metrics_list:
             print("Computing degree stats..")
-            degree = degree_stats(self.test_graphs, networkx_graphs, is_parallel=True,
+            degree = degree_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], is_parallel=True,
                                   compute_emd=self.compute_emd)
             wandb.run.summary['degree'] = degree
 
@@ -877,28 +879,28 @@ class SpectreSamplingMetrics(nn.Module):
 
         if 'spectre' in self.metrics_list:
             print("Computing spectre stats...")
-            spectre = spectral_stats(self.test_graphs, networkx_graphs, is_parallel=True, n_eigvals=-1,
+            spectre = spectral_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], is_parallel=True, n_eigvals=-1,
                                      compute_emd=self.compute_emd)
             to_log['spectre'] = spectre
             wandb.run.summary['spectre'] = spectre
 
         if 'clustering' in self.metrics_list:
             print("Computing clustering stats...")
-            clustering = clustering_stats(self.test_graphs, networkx_graphs, bins=100, is_parallel=True,
+            clustering = clustering_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], bins=100, is_parallel=True,
                                           compute_emd=self.compute_emd)
             to_log['clustering'] = clustering
             wandb.run.summary['clustering'] = clustering
 
         if 'motif' in self.metrics_list:
             print("Computing motif stats")
-            motif = motif_stats(self.test_graphs, networkx_graphs, motif_type='4cycle', ground_truth_match=None, bins=100,
+            motif = motif_stats(self.test_graphs, networkx_graphs[:len(self.test_graphs)], motif_type='4cycle', ground_truth_match=None, bins=100,
                                 compute_emd=self.compute_emd)
             to_log['motif'] = motif
             wandb.run.summary['motif'] = motif
 
         if 'orbit' in self.metrics_list:
             print("Computing orbit stats...")
-            orbit = orbit_stats_all(self.test_graphs, networkx_graphs, compute_emd=self.compute_emd)
+            orbit = orbit_stats_all(self.test_graphs, networkx_graphs[:len(self.test_graphs)], compute_emd=self.compute_emd)
             to_log['orbit'] = orbit
             wandb.run.summary['orbit'] = orbit
 
@@ -950,3 +952,4 @@ class SBMSamplingMetrics(SpectreSamplingMetrics):
         super().__init__(dataloaders=dataloaders,
                          compute_emd=False,
                          metrics_list=['degree', 'clustering', 'orbit', 'spectre', 'sbm'])
+
